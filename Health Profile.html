@@ -4,10 +4,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Hồ sơ sức khỏe điện tử - 24/04/2026</title>
-<script src="https://modao.cc/agent-py/static/source/js/tailwindcss.3.4.3.js"></script>
-<script src="https://modao.cc/agent-py/static/source/js/iconify-icon.min.1.0.7.js"></script>
-<script src="https://modao.cc/agent-py/static/source/js/echarts.min.5.4.3.js"></script>
+<title>Hồ sơ sức khỏe điện tử - 06/05/2026</title>
+<script src="https://modao.cc/agent-py/static/source/js/tailwindcss.js"></script>
+<script src="https://modao.cc/agent-py/static/source/js/iconify-icon.min.js"></script>
+<script src="https://modao.cc/agent-py/static/source/js/echarts.min.js"></script>
 <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
         body {
@@ -60,26 +60,26 @@
     </style>
 </head>
 <body class="p-4 bg-[#f0f2f5] min-h-screen">
-<header class="max-w-[1440px] mx-auto mb-4 flex items-center">
+<header class="w-[85%] mx-auto mb-4 flex items-center">
 <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
 <iconify-icon class="text-white text-xl" icon="healthicons:medical-records"></iconify-icon>
 </div>
 <h1 class="text-2xl font-bold text-gray-800">Hồ sơ sức khỏe điện tử</h1>
 </header>
-<div class="max-w-[1440px] mx-auto grid grid-cols-4 grid-rows-3 gap-4 min-h-[800px]">
+<div class="w-[85%] mx-auto grid grid-cols-4 grid-rows-3 gap-4 min-h-[800px]">
 <!-- ROW 1 -->
 <!-- 1. Patient Info -->
 <div class="card-container">
 <div class="card-body flex flex-col py-4">
 <div class="flex justify-between items-start mb-2">
 <div>
-<h2 class="text-xl font-bold">Trương Tam Phong</h2>
+<h2 class="text-xl font-bold">Nguyễn Văn Hùng</h2>
 <p class="text-sm text-gray-500">Nam, 68 tuổi</p>
 </div>
 <span class="tag-status text-blue-500 border-blue-500 bg-blue-50">Đã ký kết</span>
 </div>
 <div class="space-y-0.5">
-<p class="text-[11px] text-gray-600">Địa chỉ: Phường Tú Sơn, Phố Vũ Sơn, Quận Vũ Sơn, Thành phố Mã An Sơn, Tỉnh An Huy</p>
+<p class="text-[11px] text-gray-600">Địa chỉ: 125 Lê Lợi, Phường Bến Thành, Quận 1, TP. HCM</p>
 <p class="text-[11px] text-gray-600">Dị ứng: --</p>
 </div>
 <div class="mt-2 flex flex-wrap gap-1">
@@ -126,9 +126,9 @@
 </div>
 <!-- 3. Vital Signs -->
 <div class="card-container">
-<div class="card-header">
-Dấu hiệu sinh tồn
-<select class="ml-auto text-[10px] border-none bg-gray-100 rounded font-normal">
+<div class="card-header justify-between">
+<span>Dấu hiệu sinh tồn</span>
+<select class="text-[10px] border-none bg-gray-100 rounded">
 <option>Huyết áp</option>
 </select>
 </div>
@@ -313,16 +313,16 @@ Dấu hiệu sinh tồn
 <iconify-icon class="text-blue-500 text-lg" icon="mdi:calendar-check"></iconify-icon>
 <div>
 <p class="text-[12px] font-bold text-blue-800 leading-tight">Theo dõi Tiểu đường</p>
-<p class="text-[10px] text-blue-600 mt-0.5">2026-04-24 | Tái khám định kỳ, chỉ số ổn định</p>
+<p class="text-[10px] text-blue-600 mt-0.5">2026-05-06 | Tái khám định kỳ, chỉ số ổn định</p>
 </div>
 </div>
 </div>
 </div>
 <!-- 10. Management Plan -->
 <div class="card-container">
-<div class="card-header">
-Kế hoạch năm
-<span class="ml-2 text-[9px] text-gray-300 font-normal">2026</span>
+<div class="card-header justify-between">
+<span>Kế hoạch năm</span>
+<span class="text-[9px] text-gray-300">2026</span>
 </div>
 <div class="card-body flex flex-col justify-start">
 <div class="grid grid-cols-2 gap-2">
@@ -354,7 +354,7 @@ Kế hoạch năm
             grid: { top: 10, left: 25, right: 10, bottom: 20 },
             xAxis: {
                 type: 'category',
-                data: ['04-30', '06-12', '07-22', '08-13', '09-11', '12-04'],
+                data: ['03-15', '03-30', '04-10', '04-20', '05-01', '05-06'],
                 axisLabel: { fontSize: 8, color: '#999' },
                 axisLine: { lineStyle: { color: '#eee' } }
             },
