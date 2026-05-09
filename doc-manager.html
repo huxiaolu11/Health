@@ -75,6 +75,29 @@
             color: #999;
             text-transform: uppercase;
             letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .add-category-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .add-category-btn:hover {
+            background: #1890ff;
+            color: #fff;
         }
 
         .category-item {
@@ -651,9 +674,15 @@
                     </span>
                     <span class="doc-count" id="count-all">0</span>
                 </div>
-                <div class="category-title">产品维度</div>
+                <div class="category-title">
+                    产品维度
+                    <button class="add-category-btn" onclick="openAddCategoryModal('product')" title="新增产品">+</button>
+                </div>
                 <div id="product-categories"></div>
-                <div class="category-title">项目维度</div>
+                <div class="category-title">
+                    项目维度
+                    <button class="add-category-btn" onclick="openAddCategoryModal('project')" title="新增项目">+</button>
+                </div>
                 <div id="project-categories"></div>
             </div>
         </aside>
@@ -695,8 +724,8 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>所属产品</label>
-                            <input type="text" id="doc-product" list="product-list" placeholder="选择或输入产品">
+                            <label>所属产品 <span class="required">*</span></label>
+                            <input type="text" id="doc-product" list="product-list" placeholder="选择或输入产品" required>
                             <datalist id="product-list"></datalist>
                         </div>
                         <div class="form-group">
@@ -718,27 +747,30 @@
                         <input type="text" id="doc-creator" placeholder="请输入创建人姓名（可选）">
                     </div>
                 </form>
-                <hr style="border: none; border-top: 1px solid #e8e8e8; margin: 20px 0;">
-                <div class="form-group">
-                    <label>管理产品分类</label>
-                    <div class="category-input-group">
-                        <input type="text" id="new-product" placeholder="输入新产品名称">
-                        <button class="btn btn-default" onclick="addCategory('product')">添加</button>
-                    </div>
-                    <div class="category-tags" id="product-tags"></div>
-                </div>
-                <div class="form-group">
-                    <label>管理项目分类</label>
-                    <div class="category-input-group">
-                        <input type="text" id="new-project" placeholder="输入新项目名称">
-                        <button class="btn btn-default" onclick="addCategory('project')">添加</button>
-                    </div>
-                    <div class="category-tags" id="project-tags"></div>
-                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-default" onclick="closeModal()">取消</button>
                 <button class="btn btn-primary" onclick="saveDoc()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增分类弹窗 -->
+    <div class="modal" id="category-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="category-modal-title">新增产品</h3>
+                <button class="modal-close" onclick="closeCategoryModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label id="category-label">产品名称 <span class="required">*</span></label>
+                    <input type="text" id="category-name-input" placeholder="请输入名称">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeCategoryModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveCategory()">确定</button>
             </div>
         </div>
     </div>
@@ -750,6 +782,15 @@
     </div>
 
     <script>
+        // GitHub API 配置
+        const GITHUB_CONFIG = {
+            owner: 'huxiaolu11',                 // GitHub 用户名
+            repo: 'Health',                      // 仓库名称
+            token: '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',
+            docsPath: 'data/docs.json',          // 文档数据存储路径
+            categoriesPath: 'data/categories.json' // 分类数据存储路径
+        };
+
         // 默认分类配置
         const DEFAULT_CATEGORIES = {
             product: ['健康管理', '智慧公卫'],
@@ -758,40 +799,122 @@
 
         // 默认文档数据
         const DEFAULT_DOCS = [
-            // 嘉定项目
             { id: '1', title: '医联体项目投标参数对标功能点', url: 'https://kdocs.cn/l/cnI8YVkRDIbX', product: '健康管理', project: '嘉定', desc: '', creator: '', createdAt: Date.now(), updatedAt: Date.now() },
             { id: '2', title: '嘉定家医4.0项目资料', url: 'https://kdocs.cn/l/cpJ9vcniQ8V4', product: '健康管理', project: '嘉定', desc: '', creator: '', createdAt: Date.now() + 1, updatedAt: Date.now() },
             { id: '3', title: '慢病监管分析', url: 'https://kdocs.cn/l/cvgL1WmsrMgt', product: '健康管理', project: '嘉定', desc: '', creator: '', createdAt: Date.now() + 2, updatedAt: Date.now() },
-            // 云南项目
             { id: '4', title: '县域慢病管理中心业务资料', url: 'https://kdocs.cn/l/ct829ib6Qn1R', product: '健康管理', project: '云南', desc: '', creator: '', createdAt: Date.now() + 3, updatedAt: Date.now() },
             { id: '5', title: '县域慢病管理中心改造清单', url: 'https://kdocs.cn/l/cooIdiHoenIj', product: '健康管理', project: '云南', desc: '', creator: '', createdAt: Date.now() + 4, updatedAt: Date.now() },
-            // 海盐项目
             { id: '6', title: '海盐评估模板调整2024', url: 'https://www.kdocs.cn/l/chK1jTmcSRh8?isHistoryRecovery=1', product: '健康管理', project: '海盐', desc: '', creator: '', createdAt: Date.now() + 5, updatedAt: Date.now() },
             { id: '7', title: '海盐县脑卒中项目', url: 'https://kdocs.cn/l/cmb4Sic94aGB', product: '健康管理', project: '海盐', desc: '', creator: '', createdAt: Date.now() + 6, updatedAt: Date.now() },
-            // 金山项目
             { id: '8', title: '金山健康评估报告（包括新增模块）采集信息目录', url: 'https://kdocs.cn/l/cngPTAK8H34D', product: '健康管理', project: '金山', desc: '', creator: '', createdAt: Date.now() + 7, updatedAt: Date.now() }
         ];
 
         // 数据存储
-        let docs = JSON.parse(localStorage.getItem('docs') || '[]');
-        let categories = JSON.parse(localStorage.getItem('categories') || JSON.stringify(DEFAULT_CATEGORIES));
-        
-        // 导入默认文档（避免重复导入）
-        const importedKey = 'default_docs_imported_v2';
-        if (!localStorage.getItem(importedKey)) {
-            docs = [...DEFAULT_DOCS, ...docs];
-            localStorage.setItem('docs', JSON.stringify(docs));
-            localStorage.setItem(importedKey, 'true');
-        }
+        let docs = [];
+        let categories = { ...DEFAULT_CATEGORIES };
+        let docsSha = null;
+        let categoriesSha = null;
         let currentFilter = 'all';
         let currentView = 'grid';
         let editingId = null;
 
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
+        // GitHub API 工具函数
+        async function fetchFromGitHub(path) {
+            try {
+                const response = await fetch(
+                    `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`,
+                    {
+                        headers: {
+                            Authorization: `token ${GITHUB_CONFIG.token}`,
+                            Accept: 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+                
+                if (response.status === 404) {
+                    return null;
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return {
+                    content: JSON.parse(atob(data.content)),
+                    sha: data.sha
+                };
+            } catch (error) {
+                console.error('Error fetching from GitHub:', error);
+                return null;
+            }
+        }
+
+        async function saveToGitHub(path, content, sha = null) {
+            try {
+                const response = await fetch(
+                    `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            Authorization: `token ${GITHUB_CONFIG.token}`,
+                            Accept: 'application/vnd.github.v3+json'
+                        },
+                        body: JSON.stringify({
+                            message: `Update ${path}`,
+                            content: btoa(JSON.stringify(content)),
+                            sha: sha
+                        })
+                    }
+                );
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(`GitHub API error: ${error.message || response.status}`);
+                }
+                
+                const data = await response.json();
+                return data.content.sha;
+            } catch (error) {
+                console.error('Error saving to GitHub:', error);
+                showToast('保存失败，请检查网络或权限', 'error');
+                return null;
+            }
+        }
+
+        // 加载数据
+        async function loadData() {
+            showToast('正在加载数据...', 'success');
+            
+            // 加载文档
+            const docsData = await fetchFromGitHub(GITHUB_CONFIG.docsPath);
+            if (docsData) {
+                docs = docsData.content;
+                docsSha = docsData.sha;
+            } else {
+                docs = [...DEFAULT_DOCS];
+                docsSha = null;
+            }
+            
+            // 加载分类
+            const categoriesData = await fetchFromGitHub(GITHUB_CONFIG.categoriesPath);
+            if (categoriesData) {
+                categories = categoriesData.content;
+                categoriesSha = categoriesData.sha;
+            } else {
+                categories = { ...DEFAULT_CATEGORIES };
+                categoriesSha = null;
+            }
+            
             renderCategories();
             renderDocs();
             updateCategoryOptions();
+            showToast('数据加载完成', 'success');
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
         });
 
         // 渲染分类
@@ -831,26 +954,6 @@
 
             // 更新总数
             document.getElementById('count-all').textContent = docs.length;
-
-            // 更新弹窗中的分类标签
-            renderCategoryTags();
-        }
-
-        // 渲染分类标签（弹窗内）
-        function renderCategoryTags() {
-            document.getElementById('product-tags').innerHTML = categories.product.map(cat => `
-                <span class="category-tag">
-                    ${cat}
-                    <span class="remove" onclick="removeCategory('product', '${cat}')">✕</span>
-                </span>
-            `).join('');
-
-            document.getElementById('project-tags').innerHTML = categories.project.map(cat => `
-                <span class="category-tag">
-                    ${cat}
-                    <span class="remove" onclick="removeCategory('project', '${cat}')">✕</span>
-                </span>
-            `).join('');
         }
 
         // 更新分类选项
@@ -990,7 +1093,6 @@
             document.getElementById('doc-form').reset();
             document.getElementById('doc-id').value = '';
             updateCategoryOptions();
-            renderCategoryTags();
             document.getElementById('doc-modal').classList.add('show');
         }
 
@@ -999,8 +1101,63 @@
             document.getElementById('doc-modal').classList.remove('show');
         }
 
+        let currentCategoryType = '';
+
+        // 打开新增分类弹窗
+        function openAddCategoryModal(type) {
+            currentCategoryType = type;
+            const modal = document.getElementById('category-modal');
+            const title = document.getElementById('category-modal-title');
+            const label = document.getElementById('category-label');
+            const input = document.getElementById('category-name-input');
+
+            if (type === 'product') {
+                title.textContent = '新增产品';
+                label.innerHTML = '产品名称 <span class="required">*</span>';
+                input.placeholder = '请输入产品名称';
+            } else {
+                title.textContent = '新增项目';
+                label.innerHTML = '项目名称 <span class="required">*</span>';
+                input.placeholder = '请输入项目名称';
+            }
+
+            input.value = '';
+            modal.classList.add('show');
+        }
+
+        // 关闭新增分类弹窗
+        function closeCategoryModal() {
+            document.getElementById('category-modal').classList.remove('show');
+        }
+
+        // 保存分类
+        async function saveCategory() {
+            const name = document.getElementById('category-name-input').value.trim();
+            const type = currentCategoryType;
+
+            if (!name) {
+                showToast(type === 'product' ? '请输入产品名称' : '请输入项目名称', 'error');
+                return;
+            }
+
+            if (categories[type].includes(name)) {
+                showToast(type === 'product' ? '该产品已存在' : '该项目已存在', 'error');
+                return;
+            }
+
+            categories[type].push(name);
+            const newSha = await saveToGitHub(GITHUB_CONFIG.categoriesPath, categories, categoriesSha);
+            if (newSha) {
+                categoriesSha = newSha;
+                renderCategories();
+                updateCategoryOptions();
+                closeCategoryModal();
+                showToast(type === 'product' ? '产品已添加' : '项目已添加');
+            }
+        }
+
         // 保存文档
-        function saveDoc() {
+        async function saveDoc() {
             const title = document.getElementById('doc-title-input').value.trim();
             const url = document.getElementById('doc-url').value.trim();
             const product = document.getElementById('doc-product').value.trim();
@@ -1012,19 +1169,34 @@
                 showToast('请输入文档标题', 'error');
                 return;
             }
+            if (!product) {
+                showToast('请选择所属产品', 'error');
+                return;
+            }
             if (!url) {
                 showToast('请输入文档链接', 'error');
                 return;
             }
 
             // 自动添加新的分类
+            let needSaveCategories = false;
             if (product && !categories.product.includes(product)) {
                 categories.product.push(product);
-                localStorage.setItem('categories', JSON.stringify(categories));
+                needSaveCategories = true;
             }
             if (project && !categories.project.includes(project)) {
                 categories.project.push(project);
-                localStorage.setItem('categories', JSON.stringify(categories));
+                needSaveCategories = true;
+            }
+
+            // 保存分类（如果有新分类）
+            if (needSaveCategories) {
+                const newCatSha = await saveToGitHub(GITHUB_CONFIG.categoriesPath, categories, categoriesSha);
+                if (newCatSha) {
+                    categoriesSha = newCatSha;
+                } else {
+                    return; // 保存分类失败，取消操作
+                }
             }
 
             if (editingId) {
@@ -1042,7 +1214,6 @@
                         updatedAt: Date.now()
                     };
                 }
-                showToast('文档已更新');
             } else {
                 // 新增
                 docs.push({
@@ -1056,13 +1227,17 @@
                     createdAt: Date.now(),
                     updatedAt: Date.now()
                 });
-                showToast('文档已添加');
             }
 
-            localStorage.setItem('docs', JSON.stringify(docs));
-            closeModal();
-            renderCategories();
-            renderDocs();
+            // 保存文档
+            const newDocSha = await saveToGitHub(GITHUB_CONFIG.docsPath, docs, docsSha);
+            if (newDocSha) {
+                docsSha = newDocSha;
+                closeModal();
+                renderCategories();
+                renderDocs();
+                showToast(editingId ? '文档已更新' : '文档已添加');
+            }
         }
 
         // 编辑文档
@@ -1083,24 +1258,26 @@
             document.getElementById('doc-product').value = doc.product || '';
             document.getElementById('doc-project').value = doc.project || '';
             
-            renderCategoryTags();
             document.getElementById('doc-modal').classList.add('show');
         }
 
         // 删除文档
-        function deleteDoc(id, event) {
+        async function deleteDoc(id, event) {
             if (event) event.stopPropagation();
             if (!confirm('确定要删除这个文档吗？')) return;
 
             docs = docs.filter(d => d.id !== id);
-            localStorage.setItem('docs', JSON.stringify(docs));
-            renderCategories();
-            renderDocs();
-            showToast('文档已删除');
+            const newSha = await saveToGitHub(GITHUB_CONFIG.docsPath, docs, docsSha);
+            if (newSha) {
+                docsSha = newSha;
+                renderCategories();
+                renderDocs();
+                showToast('文档已删除');
+            }
         }
 
         // 添加分类
-        function addCategory(type) {
+        async function addCategory(type) {
             const input = document.getElementById(`new-${type}`);
             const name = input.value.trim();
 
@@ -1115,24 +1292,28 @@
             }
 
             categories[type].push(name);
-            localStorage.setItem('categories', JSON.stringify(categories));
-            input.value = '';
-            
-            renderCategories();
-            updateCategoryOptions();
-            showToast('分类已添加');
+            const newSha = await saveToGitHub(GITHUB_CONFIG.categoriesPath, categories, categoriesSha);
+            if (newSha) {
+                categoriesSha = newSha;
+                input.value = '';
+                renderCategories();
+                updateCategoryOptions();
+                showToast('分类已添加');
+            }
         }
 
         // 删除分类
-        function removeCategory(type, name) {
+        async function removeCategory(type, name) {
             if (!confirm(`确定要删除"${name}"分类吗？该分类下的文档将保留但不再归类。`)) return;
 
             categories[type] = categories[type].filter(c => c !== name);
-            localStorage.setItem('categories', JSON.stringify(categories));
-            
-            renderCategories();
-            updateCategoryOptions();
-            showToast('分类已删除');
+            const newSha = await saveToGitHub(GITHUB_CONFIG.categoriesPath, categories, categoriesSha);
+            if (newSha) {
+                categoriesSha = newSha;
+                renderCategories();
+                updateCategoryOptions();
+                showToast('分类已删除');
+            }
         }
 
         // 显示提示
@@ -1166,6 +1347,10 @@
         // 点击弹窗外部关闭
         document.getElementById('doc-modal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
+        });
+
+        document.getElementById('category-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeCategoryModal();
         });
 
         // 键盘快捷键
