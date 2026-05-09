@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档链接管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 260px;
+            background: #fff;
+            border-right: 1px solid #e8e8e8;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 10px;
+            background: #1890ff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #40a9ff;
+        }
+
+        .category-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .category-title {
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .category-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .category-item:hover {
+            background: #f5f7fa;
+        }
+
+        .category-item.active {
+            background: #e6f7ff;
+            border-left-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .category-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .category-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .doc-count {
+            font-size: 12px;
+            color: #999;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .category-item.active .doc-count {
+            background: #bae7ff;
+            color: #1890ff;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #fff;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: #1890ff;
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .view-btn {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+
+        /* 文档列表 */
+        .doc-list {
+            flex: 1;
+            padding: 20px 30px;
+            overflow-y: auto;
+        }
+
+        .doc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .doc-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .doc-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .doc-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .doc-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            line-height: 1.4;
+            flex: 1;
+            padding-right: 10px;
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .doc-card:hover .doc-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #e8e8e8;
+        }
+
+        .action-btn.delete:hover {
+            background: #ff4d4f;
+            color: #fff;
+        }
+
+        .doc-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .doc-tag {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .doc-tag.product {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .doc-tag.project {
+            background: #f6ffed;
+            color: #52c41a;
+        }
+
+        .doc-tag.creator {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+
+        .doc-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .doc-desc {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .doc-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #1890ff;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .doc-link:hover {
+            text-decoration: underline;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: normal;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+
+        .modal-close:hover {
+            background: #f5f5f5;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .form-group label .required {
+            color: #ff4d4f;
+            margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #1890ff;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-default {
+            background: #fff;
+            border-color: #d9d9d9;
+            color: #333;
+        }
+
+        .btn-default:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid #52c41a;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ff4d4f;
+        }
+
+        /* 分类管理 */
+        .category-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .category-input-group input {
+            flex: 1;
+        }
+
+        .category-input-group .btn {
+            white-space: nowrap;
+        }
+
+        .category-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .category-tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .category-tag .remove {
+            cursor: pointer;
+            color: #999;
+        }
+
+        .category-tag .remove:hover {
+            color: #ff4d4f;
+        }
+
+        /* 列表视图 */
+        .doc-list-view {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .doc-list-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .doc-list-item:hover {
+            background: #fafafa;
+        }
+
+        .doc-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .doc-list-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .doc-list-title {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .doc-list-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .doc-list-actions {
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>📚 文档管理</h1>
+                <button class="add-btn" onclick="openModal()">
+                    <span>+</span>
+                    <span>新增文档</span>
+                </button>
+            </div>
+            <div class="category-section">
+                <div class="category-title">按维度筛选</div>
+                <div class="category-item active" data-filter="all" onclick="filterDocs('all')">
+                    <span class="category-name">
+                        <span class="category-icon">📁</span>
+                        <span>全部文档</span>
+                    </span>
+                    <span class="doc-count" id="count-all">0</span>
+                </div>
+                <div class="category-title">产品维度</div>
+                <div id="product-categories"></div>
+                <div class="category-title">项目维度</div>
+                <div id="project-categories"></div>
+            </div>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <h2 class="header-title" id="current-category">全部文档</h2>
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="search-input" placeholder="搜索文档标题、描述..." oninput="searchDocs()">
+                    </div>
+                </div>
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="switchView('grid')" id="btn-grid">网格</button>
+                    <button class="view-btn" onclick="switchView('list')" id="btn-list">列表</button>
+                </div>
+            </div>
+            <div class="doc-list" id="doc-container">
+                <div class="doc-grid" id="doc-grid"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 新增/编辑弹窗 -->
+    <div class="modal" id="doc-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">新增文档</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="doc-form">
+                    <input type="hidden" id="doc-id">
+                    <div class="form-group">
+                        <label>文档标题 <span class="required">*</span></label>
+                        <input type="text" id="doc-title-input" placeholder="请输入文档标题" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>所属产品</label>
+                            <input type="text" id="doc-product" list="product-list" placeholder="选择或输入产品">
+                            <datalist id="product-list"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label>所属项目</label>
+                            <input type="text" id="doc-project" list="project-list" placeholder="选择或输入项目">
+                            <datalist id="project-list"></datalist>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>文档链接 <span class="required">*</span></label>
+                        <input type="url" id="doc-url" placeholder="https://..." required>
+                    </div>
+                    <div class="form-group">
+                        <label>文档描述</label>
+                        <textarea id="doc-desc" placeholder="请输入文档描述（可选）"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>创建人</label>
+                        <input type="text" id="doc-creator" placeholder="请输入创建人姓名（可选）">
+                    </div>
+                </form>
+                <hr style="border: none; border-top: 1px solid #e8e8e8; margin: 20px 0;">
+                <div class="form-group">
+                    <label>管理产品分类</label>
+                    <div class="category-input-group">
+                        <input type="text" id="new-product" placeholder="输入新产品名称">
+                        <button class="btn btn-default" onclick="addCategory('product')">添加</button>
+                    </div>
+                    <div class="category-tags" id="product-tags"></div>
+                </div>
+                <div class="form-group">
+                    <label>管理项目分类</label>
+                    <div class="category-input-group">
+                        <input type="text" id="new-project" placeholder="输入新项目名称">
+                        <button class="btn btn-default" onclick="addCategory('project')">添加</button>
+                    </div>
+                    <div class="category-tags" id="project-tags"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveDoc()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span id="toast-icon">✓</span>
+        <span id="toast-message">操作成功</span>
+    </div>
+
+    <script>
+        // 默认分类配置
+        const DEFAULT_CATEGORIES = {
+            product: ['健康管理', '智慧公卫'],
+            project: ['嘉定', '海盐', '云南', '金山']
+        };
+
+        // 默认文档数据
+        const DEFAULT_DOCS = [
+            // 嘉定项目
+            { id: '1', title: '医联体项目投标参数对标功能点', url: 'https://kdocs.cn/l/cnI8YVkRDIbX', product: '健康管理', project: '嘉定', desc: '', creator: '', createdAt: Date.now(), updatedAt: Date.now() },
+            { id: '2', title: '嘉定家医4.0项目资料', url: 'https://kdocs.cn/l/cpJ9vcniQ8V4', product: '健康管理', project: '嘉定', desc: '', creator: '', createdAt: Date.now() + 1, updatedAt: Date.now() },
+            { id: '3', title: '慢病监管分析', url: 'https://kdocs.cn/l/cvgL1WmsrMgt', product: '健康管理', project: '嘉定', desc: '', creator: '', createdAt: Date.now() + 2, updatedAt: Date.now() },
+            // 云南项目
+            { id: '4', title: '县域慢病管理中心业务资料', url: 'https://kdocs.cn/l/ct829ib6Qn1R', product: '健康管理', project: '云南', desc: '', creator: '', createdAt: Date.now() + 3, updatedAt: Date.now() },
+            { id: '5', title: '县域慢病管理中心改造清单', url: 'https://kdocs.cn/l/cooIdiHoenIj', product: '健康管理', project: '云南', desc: '', creator: '', createdAt: Date.now() + 4, updatedAt: Date.now() },
+            // 海盐项目
+            { id: '6', title: '海盐评估模板调整2024', url: 'https://www.kdocs.cn/l/chK1jTmcSRh8?isHistoryRecovery=1', product: '健康管理', project: '海盐', desc: '', creator: '', createdAt: Date.now() + 5, updatedAt: Date.now() },
+            { id: '7', title: '海盐县脑卒中项目', url: 'https://kdocs.cn/l/cmb4Sic94aGB', product: '健康管理', project: '海盐', desc: '', creator: '', createdAt: Date.now() + 6, updatedAt: Date.now() },
+            // 金山项目
+            { id: '8', title: '金山健康评估报告（包括新增模块）采集信息目录', url: 'https://kdocs.cn/l/cngPTAK8H34D', product: '健康管理', project: '金山', desc: '', creator: '', createdAt: Date.now() + 7, updatedAt: Date.now() }
+        ];
+
+        // 数据存储
+        let docs = JSON.parse(localStorage.getItem('docs') || '[]');
+        let categories = JSON.parse(localStorage.getItem('categories') || JSON.stringify(DEFAULT_CATEGORIES));
+        
+        // 导入默认文档（避免重复导入）
+        const importedKey = 'default_docs_imported_v2';
+        if (!localStorage.getItem(importedKey)) {
+            docs = [...DEFAULT_DOCS, ...docs];
+            localStorage.setItem('docs', JSON.stringify(docs));
+            localStorage.setItem(importedKey, 'true');
+        }
+        let currentFilter = 'all';
+        let currentView = 'grid';
+        let editingId = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCategories();
+            renderDocs();
+            updateCategoryOptions();
+        });
+
+        // 渲染分类
+        function renderCategories() {
+            const productContainer = document.getElementById('product-categories');
+            const projectContainer = document.getElementById('project-categories');
+            
+            // 统计各分类文档数量
+            const productCount = {};
+            const projectCount = {};
+            docs.forEach(doc => {
+                if (doc.product) productCount[doc.product] = (productCount[doc.product] || 0) + 1;
+                if (doc.project) projectCount[doc.project] = (projectCount[doc.project] || 0) + 1;
+            });
+
+            // 渲染产品分类
+            productContainer.innerHTML = categories.product.map(cat => `
+                <div class="category-item" data-filter="product:${cat}" onclick="filterDocs('product:${cat}')">
+                    <span class="category-name">
+                        <span class="category-icon">📦</span>
+                        <span>${cat}</span>
+                    </span>
+                    <span class="doc-count">${productCount[cat] || 0}</span>
+                </div>
+            `).join('');
+
+            // 渲染项目分类
+            projectContainer.innerHTML = categories.project.map(cat => `
+                <div class="category-item" data-filter="project:${cat}" onclick="filterDocs('project:${cat}')">
+                    <span class="category-name">
+                        <span class="category-icon">🚀</span>
+                        <span>${cat}</span>
+                    </span>
+                    <span class="doc-count">${projectCount[cat] || 0}</span>
+                </div>
+            `).join('');
+
+            // 更新总数
+            document.getElementById('count-all').textContent = docs.length;
+
+            // 更新弹窗中的分类标签
+            renderCategoryTags();
+        }
+
+        // 渲染分类标签（弹窗内）
+        function renderCategoryTags() {
+            document.getElementById('product-tags').innerHTML = categories.product.map(cat => `
+                <span class="category-tag">
+                    ${cat}
+                    <span class="remove" onclick="removeCategory('product', '${cat}')">✕</span>
+                </span>
+            `).join('');
+
+            document.getElementById('project-tags').innerHTML = categories.project.map(cat => `
+                <span class="category-tag">
+                    ${cat}
+                    <span class="remove" onclick="removeCategory('project', '${cat}')">✕</span>
+                </span>
+            `).join('');
+        }
+
+        // 更新分类选项
+        function updateCategoryOptions() {
+            const productList = document.getElementById('product-list');
+            const projectList = document.getElementById('project-list');
+
+            productList.innerHTML = categories.product.map(cat => `<option value="${cat}">`).join('');
+            projectList.innerHTML = categories.project.map(cat => `<option value="${cat}">`).join('');
+        }
+
+        // 渲染文档列表
+        function renderDocs() {
+            const container = document.getElementById('doc-grid');
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+            // 过滤文档
+            let filteredDocs = docs.filter(doc => {
+                // 搜索过滤
+                if (searchTerm && !doc.title.toLowerCase().includes(searchTerm) && 
+                    !(doc.desc && doc.desc.toLowerCase().includes(searchTerm))) {
+                    return false;
+                }
+
+                // 分类过滤
+                if (currentFilter === 'all') return true;
+                if (currentFilter.startsWith('product:')) {
+                    return doc.product === currentFilter.replace('product:', '');
+                }
+                if (currentFilter.startsWith('project:')) {
+                    return doc.project === currentFilter.replace('project:', '');
+                }
+                return true;
+            });
+
+            // 按时间倒序
+            filteredDocs.sort((a, b) => b.createdAt - a.createdAt);
+
+            if (filteredDocs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="icon">📭</div>
+                        <h3>暂无文档</h3>
+                        <p>点击左上角"新增文档"按钮添加第一个文档链接</p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (currentView === 'grid') {
+                container.className = 'doc-grid';
+                container.innerHTML = filteredDocs.map(doc => `
+                    <div class="doc-card">
+                        <div class="doc-header">
+                            <div class="doc-title">${escapeHtml(doc.title)}</div>
+                            <div class="doc-actions">
+                                <button class="action-btn" onclick="editDoc('${doc.id}', event)" title="编辑">✏️</button>
+                                <button class="action-btn delete" onclick="deleteDoc('${doc.id}', event)" title="删除">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="doc-meta">
+                            ${doc.product ? `<span class="doc-tag product">📦 ${escapeHtml(doc.product)}</span>` : ''}
+                            ${doc.project ? `<span class="doc-tag project">🚀 ${escapeHtml(doc.project)}</span>` : ''}
+                            ${doc.creator ? `<span class="doc-tag creator">👤 ${escapeHtml(doc.creator)}</span>` : ''}
+                        </div>
+                        ${doc.desc ? `<div class="doc-desc">${escapeHtml(doc.desc)}</div>` : ''}
+                        <a href="${escapeHtml(doc.url)}" target="_blank" class="doc-link" onclick="event.stopPropagation()">
+                            🔗 ${escapeHtml(doc.url.length > 50 ? doc.url.substring(0, 50) + '...' : doc.url)}
+                        </a>
+                    </div>
+                `).join('');
+            } else {
+                container.className = 'doc-list-view';
+                container.innerHTML = filteredDocs.map(doc => `
+                    <div class="doc-list-item">
+                        <div class="doc-list-info">
+                            <div class="doc-list-title">${escapeHtml(doc.title)}</div>
+                            <div class="doc-list-meta">
+                                ${doc.product ? `<span>📦 ${escapeHtml(doc.product)}</span>` : ''}
+                                ${doc.project ? `<span>🚀 ${escapeHtml(doc.project)}</span>` : ''}
+                                ${doc.creator ? `<span>👤 ${escapeHtml(doc.creator)}</span>` : ''}
+                                <span>${formatDate(doc.createdAt)}</span>
+                            </div>
+                        </div>
+                        <div class="doc-list-actions">
+                            <button class="action-btn" onclick="window.open('${escapeHtml(doc.url)}', '_blank')" title="打开链接">🔗</button>
+                            <button class="action-btn" onclick="editDoc('${doc.id}')" title="编辑">✏️</button>
+                            <button class="action-btn delete" onclick="deleteDoc('${doc.id}')" title="删除">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // 过滤文档
+        function filterDocs(filter) {
+            currentFilter = filter;
+            
+            // 更新选中状态
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            if (filter === 'all') {
+                document.querySelector('[data-filter="all"]').classList.add('active');
+                document.getElementById('current-category').textContent = '全部文档';
+            } else {
+                const item = document.querySelector(`[data-filter="${filter}"]`);
+                if (item) {
+                    item.classList.add('active');
+                    const name = item.querySelector('.category-name span:last-child').textContent;
+                    const type = filter.startsWith('product:') ? '产品' : '项目';
+                    document.getElementById('current-category').textContent = `${type}: ${name}`;
+                }
+            }
+
+            renderDocs();
+        }
+
+        // 搜索文档
+        function searchDocs() {
+            renderDocs();
+        }
+
+        // 切换视图
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('btn-grid').classList.toggle('active', view === 'grid');
+            document.getElementById('btn-list').classList.toggle('active', view === 'list');
+            renderDocs();
+        }
+
+        // 打开弹窗
+        function openModal() {
+            editingId = null;
+            document.getElementById('modal-title').textContent = '新增文档';
+            document.getElementById('doc-form').reset();
+            document.getElementById('doc-id').value = '';
+            updateCategoryOptions();
+            renderCategoryTags();
+            document.getElementById('doc-modal').classList.add('show');
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('doc-modal').classList.remove('show');
+        }
+
+        // 保存文档
+        function saveDoc() {
+            const title = document.getElementById('doc-title-input').value.trim();
+            const url = document.getElementById('doc-url').value.trim();
+            const product = document.getElementById('doc-product').value.trim();
+            const project = document.getElementById('doc-project').value.trim();
+            const desc = document.getElementById('doc-desc').value.trim();
+            const creator = document.getElementById('doc-creator').value.trim();
+
+            if (!title) {
+                showToast('请输入文档标题', 'error');
+                return;
+            }
+            if (!url) {
+                showToast('请输入文档链接', 'error');
+                return;
+            }
+
+            // 自动添加新的分类
+            if (product && !categories.product.includes(product)) {
+                categories.product.push(product);
+                localStorage.setItem('categories', JSON.stringify(categories));
+            }
+            if (project && !categories.project.includes(project)) {
+                categories.project.push(project);
+                localStorage.setItem('categories', JSON.stringify(categories));
+            }
+
+            if (editingId) {
+                // 编辑
+                const index = docs.findIndex(d => d.id === editingId);
+                if (index !== -1) {
+                    docs[index] = {
+                        ...docs[index],
+                        title,
+                        url,
+                        product,
+                        project,
+                        desc,
+                        creator,
+                        updatedAt: Date.now()
+                    };
+                }
+                showToast('文档已更新');
+            } else {
+                // 新增
+                docs.push({
+                    id: Date.now().toString(),
+                    title,
+                    url,
+                    product,
+                    project,
+                    desc,
+                    creator,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                });
+                showToast('文档已添加');
+            }
+
+            localStorage.setItem('docs', JSON.stringify(docs));
+            closeModal();
+            renderCategories();
+            renderDocs();
+        }
+
+        // 编辑文档
+        function editDoc(id, event) {
+            if (event) event.stopPropagation();
+            const doc = docs.find(d => d.id === id);
+            if (!doc) return;
+
+            editingId = id;
+            document.getElementById('modal-title').textContent = '编辑文档';
+            document.getElementById('doc-id').value = id;
+            document.getElementById('doc-title-input').value = doc.title;
+            document.getElementById('doc-url').value = doc.url;
+            document.getElementById('doc-desc').value = doc.desc || '';
+            document.getElementById('doc-creator').value = doc.creator || '';
+            
+            updateCategoryOptions();
+            document.getElementById('doc-product').value = doc.product || '';
+            document.getElementById('doc-project').value = doc.project || '';
+            
+            renderCategoryTags();
+            document.getElementById('doc-modal').classList.add('show');
+        }
+
+        // 删除文档
+        function deleteDoc(id, event) {
+            if (event) event.stopPropagation();
+            if (!confirm('确定要删除这个文档吗？')) return;
+
+            docs = docs.filter(d => d.id !== id);
+            localStorage.setItem('docs', JSON.stringify(docs));
+            renderCategories();
+            renderDocs();
+            showToast('文档已删除');
+        }
+
+        // 添加分类
+        function addCategory(type) {
+            const input = document.getElementById(`new-${type}`);
+            const name = input.value.trim();
+
+            if (!name) {
+                showToast('请输入分类名称', 'error');
+                return;
+            }
+
+            if (categories[type].includes(name)) {
+                showToast('该分类已存在', 'error');
+                return;
+            }
+
+            categories[type].push(name);
+            localStorage.setItem('categories', JSON.stringify(categories));
+            input.value = '';
+            
+            renderCategories();
+            updateCategoryOptions();
+            showToast('分类已添加');
+        }
+
+        // 删除分类
+        function removeCategory(type, name) {
+            if (!confirm(`确定要删除"${name}"分类吗？该分类下的文档将保留但不再归类。`)) return;
+
+            categories[type] = categories[type].filter(c => c !== name);
+            localStorage.setItem('categories', JSON.stringify(categories));
+            
+            renderCategories();
+            updateCategoryOptions();
+            showToast('分类已删除');
+        }
+
+        // 显示提示
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = message;
+            document.getElementById('toast-icon').textContent = type === 'success' ? '✓' : '✕';
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 工具函数
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')}`;
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('doc-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                openModal();
+            }
+        });
+    </script>
+</body>
+</html>
